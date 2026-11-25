@@ -1,0 +1,42 @@
+{
+  "name": "applied",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": ">=20"
+  },
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "dev:api": "npm run dev --workspace @applied/api",
+    "dev:web": "npm run dev --workspace @applied/web",
+    "build": "npm run build --workspace @applied/web",
+    "typecheck": "npm run typecheck --workspaces --if-present",
+    "lint": "eslint .",
+    "format": "prettier --write .",
+    "test": "vitest run --passWithNoTests",
+    "migrate": "npm run migrate --workspace @applied/api",
+    "generate": "npm run generate --workspace @applied/api",
+    "seed": "npm run seed --workspace @applied/api",
+    "start:api": "npm run start --workspace @applied/api",
+    "deploy:api": "npm run deploy --workspace @applied/api",
+    "studio": "npm run studio --workspace @applied/api"
+  },
+  "overrides": {
+    "effect": "3.22.5"
+  },
+  "devDependencies": {
+    "@eslint/js": "^10.0.1",
+    "@types/supertest": "^7.2.1",
+    "eslint": "^10.15.0",
+    "globals": "^17.14.0",
+    "prettier": "^3.3.3",
+    "supertest": "^7.3.2",
+    "typescript": "^5.6.3",
+    "typescript-eslint": "^8.74.0",
+    "vitest": "^5.1.1"
+  }
+}

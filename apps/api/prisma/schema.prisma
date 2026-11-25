@@ -1,0 +1,65 @@
+// The database schema. Prisma turns these models into SQL tables and into a
+// TypeScript client. This file is the single source of truth for the DB shape.
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+  // In Prisma 7 the connection URL lives in prisma.config.ts, not here.
+}
+
+enum Status {
+  SAVED
+  APPLIED
+  INTERVIEW
+  OFFER
+  REJECTED
+}
+
+enum JobType {
+  FULL_TIME
+  PART_TIME
+  INTERNSHIP
+  CONTRACT
+  OTHER
+}
+
+model User {
+  id           String        @id @default(uuid()) @db.Uuid
+  email        String        @unique
+  name         String
+  passwordHash String        @map("password_hash")
+  applications Application[]
+  createdAt    DateTime      @default(now()) @map("created_at")
+  updatedAt    DateTime      @updatedAt @map("updated_at")
+
+  @@map("users")
+}
+
+model Application {
+  id             String    @id @default(uuid()) @db.Uuid
+  userId         String    @map("user_id") @db.Uuid
+  user           User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  company        String
+  position       String
+  appliedAt      DateTime? @map("applied_at")
+  portalUrl      String?   @map("portal_url")
+  hiringContact  String?   @map("hiring_contact")
+  location       String?
+  status         Status    @default(SAVED)
+  jobDescription String?   @map("job_description")
+  qualifications String?
+  salary         String?
+  jobType        JobType?  @map("job_type")
+  notes          String?
+  createdAt      DateTime  @default(now()) @map("created_at")
+  updatedAt      DateTime  @updatedAt @map("updated_at")
+
+  // Every screen starts from the signed-in user, so user_id leads each index.
+  @@index([userId, status])
+  @@index([userId, appliedAt])
+  @@index([userId, createdAt])
+  @@map("applications")
+}
