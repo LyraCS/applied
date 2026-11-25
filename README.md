@@ -15,7 +15,7 @@ Save a job with just a company and a role, then fill in the rest whenever you li
 ![Tailwind CSS](https://img.shields.io/badge/Tailwind-3.4-06B6D4?logo=tailwindcss&logoColor=white)
 ![Vitest](https://img.shields.io/badge/Tests-Vitest-6E9F18?logo=vitest&logoColor=white)
 
-**Live demo:** https://<your-vercel-app>.vercel.app _(replace this single placeholder with the URL Vercel prints after the first deploy)_
+**Live demo:** `https://<your-vercel-app>.vercel.app` _(replace this single placeholder with the URL Vercel prints after the first deploy)_
 
 **Screenshots:** _placeholder — screens built in Phase 5; user review pending_
 
