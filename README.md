@@ -19,6 +19,14 @@ Save a job with just a company and a role, then fill in the rest whenever you li
 
 > Build status: **Phase 9 of 9, deployed on Vercel** — the full app, 19 tests, CI, demo seed and docs are done. React and Express run as two services in one Vercel project, with `/api` routed same-origin.
 
+## Screenshots
+
+![Applications page with search, status and job-type filters, and a board/table toggle](docs/captures/dashboard.png)
+
+| Log in | Create account |
+|---|---|
+| ![Log in screen](docs/captures/login.png) | ![Create account screen](docs/captures/signup.png) |
+
 ## Quick start (target: 5 steps)
 
 1. `git clone https://github.com/LyraCS/applied.git && cd applied && npm install`
