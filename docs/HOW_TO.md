@@ -1,13 +1,13 @@
 # How to
 
-_Last updated: 2026-11-25 — Phase 8. Sections are filled in as each phase lands._
+_Last updated: 2026-11-25 — Phase 9 accuracy pass. Every section below describes code that exists in the repo; deploy steps are pending the first Vercel release._
 
 ## Local setup from scratch
 
-1. `git clone <repo-url> && cd applied`
+1. `git clone https://github.com/LyraCS/applied.git && cd applied`
 2. `npm install` — one install for all workspaces.
 3. Copy `apps/api/.env.example` to `apps/api/.env`; paste the pooled and direct URLs from a Neon **dev branch**, plus a random `JWT_SECRET` (`openssl rand -base64 48`).
-4. `npm run generate && npm run migrate`
+4. `npm run generate && npm run migrate && npm run seed` — the seed creates the public demo account and is safe to rerun.
 5. `npm run dev:api` in terminal 1 and `npm run dev:web` in terminal 2 → http://localhost:5173. Vite listens on all interfaces (`server.host: true`), so `127.0.0.1:5173` and the machine's LAN IP also work — needed by mobile viewers. Only run it on a trusted network.
 
 ## Log in and out
@@ -35,7 +35,7 @@ Only `company` and `position` are required; every other field is optional. Blank
 - `/applications` — board grouped by status; switch to **table** for a wide view. Search is debounced 250 ms; filter by status or job type, choose a sort field and direction, then **Clear filters**. The `<select>` on each card patches the status in place (no drag-and-drop).
 - `/applications/new` — only company and position are required; a blank date and blank text become `null`. Errors appear inline on blur and in a focusable summary after a failed submit.
 - `/applications/:id` — full detail with Edit and a two-step delete confirmation.
-- Every screen shows a loading skeleton, an error with **Try again**, and a helpful empty state with an action.
+- Every data screen shows a loading skeleton, an error with **Try again**, and a helpful empty state with an action. Auth screens have their own validation states.
 
 For the mobile check: DevTools → responsive mode → 375px. The board becomes one status-grouped column (no sideways scroll); only the table scrolls sideways.
 
@@ -59,7 +59,7 @@ Prisma CLI reads `DIRECT_URL` from `apps/api/prisma.config.ts`; the running API 
 
 ## CI on GitHub
 
-1. Push the repo to GitHub.
+1. The repo is already on GitHub at `LyraCS/applied`; the badge reads from it.
 2. Add two repository secrets: `CI_DB_PASSWORD` and `CI_JWT_SECRET`. Generate URL-safe values with `openssl rand -hex 24` — the DB password is also the throwaway Postgres service password, so do not reuse a real one.
 3. The README badge already points to `LyraCS/applied`; keep it as is.
 4. Every push and pull request runs install → Prisma generate → `migrate deploy` → typecheck → lint → test → build. A failed step blocks the run; the badge shows the result.
@@ -125,11 +125,11 @@ Render's free instance sleeps after roughly 15 minutes idle; the first visitor t
 
 1. Add repository secret `RENDER_HEALTH_URL` = `https://applied-api.onrender.com/api/health`.
 2. Open **Actions → Warm up API → Run workflow** to confirm it turns green.
-3. Trade-off: ~144 tiny Action runs/day, which uses free Actions minutes. A paid Render Starter instance (about $7/month) stays awake and is simpler — in that case delete `warmup.yml` and keep the health check.
+3. Trade-off: ~144 tiny Action runs/day, which uses free Actions minutes. A paid Render Starter instance (about $7/month as of Nov 2026) stays awake and is simpler — in that case delete `warmup.yml` and keep the health check.
 
 ### 5. Live smoke test
 
-Run these in order on the public Vercel URL. Use the **429 test last** — it blocks your IP for 15 minutes.
+After the Vercel deploy, run these in order on the public URL. Use the **429 test last** — it blocks your IP for 15 minutes.
 
 | # | Action | Expected result |
 |---|---|---|
@@ -145,6 +145,13 @@ Run these in order on the public Vercel URL. Use the **429 test last** — it bl
 
 Check `document.cookie` in the console: the token must **not** appear there. That is the point of httpOnly.
 
-## Adding a new field, end to end (worked example)
+## Adding a new field, end to end (checklist)
 
-_Phase 9 — written after the field exists, using `workMode` as the example: shared Zod schema → Prisma migration → API validation and controller → React Hook Form field → kanban/table display → docs and test._
+Use the existing `salary` field as the model:
+
+1. `packages/shared/src/schemas.ts` — add it to `applicationCreateSchema`, with a blank string transformed to `null`.
+2. `apps/api/prisma/schema.prisma` — add the nullable column, then `npm run generate && npm run migrate` to create and apply a migration.
+3. `apps/api/src/controllers/application.controller.ts` — no per-field code is needed for a nullable scalar: create spreads the validated body and PATCH uses the `.partial()` schema.
+4. `apps/web/src/components/applications/ApplicationForm.tsx` — add a labelled input; `emptyFormValues` and `toFormValues` keep it as a string in the form.
+5. `apps/web/src/pages/ApplicationDetailPage.tsx` — display it; `salary` is shown there as free text today, so `"competitive"` is valid and the shared schema caps it at 120 characters.
+6. Add a form test for the blank-to-null transform, update [[API]] and [[DATABASE]], then run `npm run typecheck && npm run lint && npm test && npm run build`.

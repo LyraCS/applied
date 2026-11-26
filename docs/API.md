@@ -1,8 +1,8 @@
 # API
 
-_Last updated: 2026-11-25 — Phase 5. Health, auth, all five application routes and `GET /api/stats` are implemented; the frontend consumes them through `/api`._
+_Last updated: 2026-11-25 — Phase 9 accuracy pass. Health, auth, all five application routes and `GET /api/stats` are implemented and tested; the frontend consumes them through `/api`._
 
-Base URL in dev: `http://localhost:4000` (reached from the browser as `/api` via the Vite proxy).
+Base URL in dev: `http://localhost:4000` (reached from the browser as `/api` via the Vite proxy). In production the browser calls `/api` on the Vercel domain and Vercel forwards it to Render.
 
 ## Conventions
 
@@ -72,7 +72,7 @@ The JWT cookie is the only source of identity. No route reads a user ID from a b
 
 ## Auth details (implemented)
 
-The cookie is named `applied_token`, is `HttpOnly`, `SameSite=Lax`, `Path=/`, lives 7 days, and is `Secure` only in production (the same-origin proxy/rewrite makes that safe). Every response carries helmet headers (`X-Content-Type-Options`, `X-Frame-Options`, CSP, and others). Register and login share one rate limiter: 10 attempts per 15 minutes per IP, returning:
+The cookie is named `applied_token`, is `HttpOnly`, `SameSite=Lax`, `Path=/`, lives 7 days, and is `Secure` only in production (HTTPS plus the same-origin proxy/rewrite make that safe). Every response carries helmet's default security headers. Register and login share one rate limiter: 10 attempts per 15 minutes per IP, returning:
 
 ```json
 { "error": { "message": "Too many attempts. Please try again later.", "code": "RATE_LIMITED" } }
@@ -80,7 +80,7 @@ The cookie is named `applied_token`, is `HttpOnly`, `SameSite=Lax`, `Path=/`, li
 
 Passwords are hashed with bcrypt cost 12; no hash is ever returned. `POST /api/auth/logout` clears the cookie; subsequent `/me` calls return 401.
 
-## Implemented today
+## Example calls
 
 ```sh
 curl http://localhost:4000/api/health

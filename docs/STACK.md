@@ -1,6 +1,6 @@
 # Stack
 
-_Last updated: 2026-11-25 — Phase 7. Items marked "Phase N" are planned, not installed yet._
+_Last updated: 2026-11-25 — Phase 9 accuracy pass. Everything listed is installed or configured; the first Vercel/Render deploy is still pending._
 
 | Technology | Role | Why | Alternatives considered |
 |---|---|---|---|
@@ -19,9 +19,9 @@ _Last updated: 2026-11-25 — Phase 7. Items marked "Phase N" are planned, not i
 | helmet + express-rate-limit | Security headers + brute-force throttling | Added globally / on auth routes at the trust boundary; non-negotiable | Custom middleware (less tested) |
 | Vitest 5 + Supertest | API integration tests | Tests real routes, middleware and Prisma together; one runner for the monorepo. Vitest 2 had critical advisories, so it was upgraded before writing tests | Jest (extra config with ESM); Playwright (overkill for API tests) |
 | ESLint 10 + Prettier | Lint and format | Flat config covers both apps and the shared package; no formatting debates | ESLint 9 (deprecated warning on install) |
-| GitHub Actions | CI | Runs install, migrate, typecheck, lint, test and build on every push/PR; Postgres service + secrets keep credentials out of the repo | No CI (definition of done requires it) |
+| GitHub Actions | CI + warm-up | CI runs install, migrate, typecheck, lint, test and build on every push/PR with a Postgres service and secrets; a scheduled workflow pings `/api/health` every 10 minutes | No CI; paid Render instance instead of the ping workflow |
 | React Testing Library + jest-dom + jsdom | Frontend tests | Tests what the user sees (roles, labels, messages) rather than component internals; jsdom gives a DOM in Node | Enzyme (shallow rendering hides real behaviour); snapshot-only tests (brittle) |
-| Vercel + Render (Phase 8) | Deploy targets | Vercel for the Vite build, Render for the long-running Express process | Single Render service serving static build (simpler cookies, less conventional split); all-Vercel serverless (cold starts and rewrite complexity) |
+| Vercel + Render | Deploy targets (configured) | Vercel for the Vite build, Render for the long-running Express process; a rewrite makes `/api` same-origin | Single Render service serving static build (simpler cookies, less conventional split); all-Vercel serverless (cold starts and rewrite complexity) |
 
 **Frontend state:** no global store or query library. `useAsync` owns each screen's server data; filters, view choice and form fields stay in component `useState`. A query-cache library would add machinery this single-user app does not need.
 
@@ -32,5 +32,5 @@ Source: `ui-ux-pro-max` design-system query "job tracker productivity dashboard"
 - **Style:** clean, spacious, grid-based, high contrast; light mode is primary (dark mode is a post-MVP stretch).
 - **Colours:** primary `#0369A1`, secondary `#0EA5E9`, accent `#16A34A`, surface `#F0F9FF`, ink `#0C4A6E`, muted `#475569`, line `#BAE6FD`, danger `#DC2626`.
 - **Type:** Fira Sans (body), Fira Code (monospace labels/numbers), Google Fonts link in `apps/web/index.html`.
-- **Rules carried into implementation:** visible focus rings, ≥44px touch targets, no emoji as icons, hover transitions 150–300ms, responsive checks at 375/768/1024/1440px, reduced-motion respected in polish.
+- **Rules carried into implementation:** visible focus rings, semantic token names, one status-grouped column at 375px with `md`/`lg` Breakpoints for more, no emoji as icons, short hover transitions, and `motion-safe` animations for reduced-motion users.
 - Tokens live in `apps/web/tailwind.config.js`; components use names like `text-ink`, never raw hex.

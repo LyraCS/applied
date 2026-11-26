@@ -1,6 +1,6 @@
 # Architecture
 
-_Last updated: 2026-11-25 — Phase 8. Auth, CRUD, stats, 19 tests, CI, demo seed and deploy configs are in place; the live URL is the last manual edit._
+_Last updated: 2026-11-25 — Phase 9 accuracy pass. Auth, CRUD, stats, 19 tests, CI, demo seed and deploy configs are implemented; the live Vercel URL is still pending deploy._
 
 ## System overview
 
@@ -16,7 +16,7 @@ flowchart LR
     R -. Set-Cookie: applied_token .-> B
 ```
 
-In development, Vite forwards `/api` to Express. In production, Vercel serves the static React build and rewrites `/api/*` to Render; the browser still sees one origin, so the cookie stays `SameSite=Lax` instead of the weaker `SameSite=None`. The scheduled ping keeps Render's free instance awake, and Neon keeps dev and production data in separate branches.
+In development, Vite forwards `/api` to Express. In production, Vercel is configured to serve the static React build and rewrite `/api/*` to Render; the browser still sees one origin, so the cookie stays `SameSite=Lax` instead of the weaker `SameSite=None`. The scheduled ping is intended to keep Render's free instance awake once its secret is set, and Neon keeps dev and production data in separate branches.
 
 ## Folder map
 
@@ -66,7 +66,7 @@ There is deliberately **no `services/` layer**: the current business logic is a 
 
 ```mermaid
 flowchart LR
-    R[Request] --> TP[trust proxy = 1] --> H[helmet security headers] --> J[express.json] --> C[cookieParser] --> RT[route match] --> V[validate body] --> A[authenticate] --> CT[controller] --> P[Prisma] --> RES[JSON response]
+    R[Request] --> TP[TRUST_PROXY: 1 dev / 2 prod] --> H[helmet security headers] --> J[express.json] --> C[cookieParser] --> RT[route match] --> A[authenticate on protected routes] --> V[validate body/query/params] --> CT[controller] --> P[Prisma] --> RES[JSON response]
     CT -. error .--> EH[errorHandler, last]
 ```
 
@@ -113,7 +113,7 @@ sequenceDiagram
 
 ```mermaid
 sequenceDiagram
-    participant C as Client (now: curl/Supertest; later: React)
+    participant C as Client (React app, curl or Supertest)
     participant A as Express API
     participant DB as PostgreSQL
 
@@ -136,7 +136,7 @@ sequenceDiagram
     participant U as User
     participant W as React screen
     participant H as useAsync
-    participant A as API via /api (Vite proxy)
+    participant A as API via /api (Vite proxy / Vercel rewrite)
     U->>W: Open screen / change a filter
     W->>H: load() with new deps
     H->>A: apps/web/src/lib/api.ts → fetch /api/... + credentials: include
@@ -155,18 +155,18 @@ sequenceDiagram
 
 **Polish (Phase 6):** the nav becomes two rows on phones with `NavLink` marking the current page, and a skip link leads keyboard users to `<main id="main-content">`. Changing a status remounts the card in another column, so the page restores focus to that card's `<select>` and announces the move in an `aria-live` region. An `ErrorBoundary` around the routes prevents one render error from blanking the app. In dev, Vite binds to all interfaces (`server.host: true`) so IPv4, IPv6, LAN IP and the proxy all resolve — earlier it was IPv6-only, which broke the Firefox mobile viewer.
 
-## Testing (Phase 7)
+## Testing
 
 One Vitest config runs both Node/Supertest API tests and jsdom React tests. API tests use the real dev branch locally and an ephemeral Postgres service in CI; each file's `afterAll` deletes only its own users. The frontend tests mock just the auth context — the form test runs the real React Hook Form + Zod resolver, so the blank-to-null transform is verified end to end. Rate-limit tests use distinct `X-Forwarded-For` IPs because the limiter counter is in-memory and per IP.
 
 CI runs on every push and PR: `npm ci` → Prisma generate → `migrate deploy` → typecheck → lint → test → build. The DB password and JWT secret come from repository secrets, so no credential is stored in the repo.
 
-## Deployment (Phase 8)
+## Deployment
 
-**Render** runs one Node process: `npm run deploy:api` = `prisma migrate deploy && npm run start`. Migrations are applied on boot with `migrate deploy` (never `migrate dev`), so a restart never creates a new migration file. `NODE_ENV=production` makes the JWT cookie `Secure`; `TRUST_PROXY=2` keeps the auth limiter keyed to the visitor through Vercel + Render. `/api/health` is both Render's health check and the warm-up target.
+**Render** is configured to run one Node process: `npm run deploy:api` = `prisma migrate deploy && npm run start`. Migrations are applied on boot with `migrate deploy` (never `migrate dev`), so a restart never creates a new migration file. `NODE_ENV=production` makes the JWT cookie `Secure`; `TRUST_PROXY=2` keeps the auth limiter keyed to the visitor through Vercel + Render. `/api/health` is both Render's health check and the warm-up target.
 
-**Vercel** serves `apps/web/dist` and rewrites `/api/:path*` to the Render URL. Analogy: the browser asks the front desk for everything; the front desk quietly fetches the API from the kitchen. Because there is no cross-origin browser call, there is no CORS middleware to configure — `CORS_ORIGIN` documents the intended browser origin for any future direct client.
+**Vercel** is configured to serve `apps/web/dist` and rewrite `/api/:path*` to the Render URL. Analogy: the browser asks the front desk for everything; the front desk quietly fetches the API from the kitchen. Because there is no cross-origin browser call, there is no CORS middleware to configure — `CORS_ORIGIN` documents the intended browser origin for any future direct client.
 
-**Idempotent seed:** `apps/api/prisma/seed.ts` uses fixed UUIDs and `upsert`, so running `npm run seed` twice leaves 10 demo rows, not 20. The account is deliberately public on the live site; its purpose is to let a visitor explore a populated dashboard without signing up.
+**Idempotent seed:** `apps/api/prisma/seed.ts` uses fixed UUIDs and `upsert`, so running `npm run seed` twice leaves 10 demo rows, not 20. The account is deliberately public once deployed; its purpose is to let a visitor explore a populated dashboard without signing up.
 
-**Cold start trade-off:** Render's free tier sleeps when idle, so the first request after a pause waits for boot. A 10-minute GitHub Actions ping avoids that wait at the cost of Action minutes; a paid Render instance removes the sleep entirely and lets the ping workflow be deleted. Exact dashboard values are in [[HOW_TO]].
+**Cold start trade-off:** Render's free tier sleeps when idle, so the first request after a pause waits for boot. A 10-minute GitHub Actions ping is intended to avoid that wait at the cost of Action minutes; a paid Render instance removes the sleep entirely and lets the ping workflow be deleted. Exact dashboard values are in [[HOW_TO]].

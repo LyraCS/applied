@@ -1,6 +1,6 @@
 # Database
 
-_Last updated: 2026-11-25 — Phase 2. Schema and generated client exist; the initial migration SQL is written but **not yet applied** because `apps/api/.env` is missing._
+_Last updated: 2026-11-25 — Phase 9 accuracy pass. The schema, generated client and initial migration are in place; the migration has been applied to the Neon dev branch, and Render applies the same migration with `migrate deploy` on boot._
 
 ## Local development: Neon dev branch
 
@@ -48,7 +48,7 @@ erDiagram
 
 ## Tables and fields
 
-**`users`** — one row per account. `email` is unique (the Zod schema lowercases it before it reaches the DB, so `Me@X.com` and `me@x.com` cannot both be created). `password_hash` is a bcrypt digest in Phase 3; the plaintext password is never stored. `created_at` is set once; `updated_at` is maintained by Prisma.
+**`users`** — one row per account. `email` is unique (the Zod schema lowercases it before it reaches the DB, so `Me@X.com` and `me@x.com` cannot both be created). `password_hash` is a bcrypt digest; the plaintext password is never stored. `created_at` is set once; `updated_at` is maintained by Prisma.
 
 **`applications`** — one row per job. Only `company` and `position` are required; all other fields are nullable so a job can be saved with almost no detail. `salary` is text on purpose: `"$90k–110k"`, `"competitive"` and `"€40/h"` are all valid answers, and a numeric column would reject real input. `appliedAt` stays `NULL` for a `SAVED` job, so the dashboard's "this week" count uses it rather than `createdAt`.
 
@@ -83,14 +83,14 @@ flowchart LR
 
 - `prisma/schema.prisma` — models, enums and indexes. This is the source of truth.
 - `prisma.config.ts` — CLI settings. `import 'dotenv/config'` is required in Prisma 7 because env files are no longer auto-loaded.
-- `src/generated/prisma/` — generated TypeScript client, committed like other source and excluded from ESLint. Regenerate after every schema change.
+- `src/generated/prisma/` — generated TypeScript client, excluded from ESLint and ignored by git; `npm run generate` recreates it after clone and after every schema change.
 - `src/lib/prisma.ts` — one shared `PrismaClient` with `@prisma/adapter-pg`. A singleton avoids a new connection pool per request.
 
 **What a migration is:** a versioned SQL change log for the database, like a logbook for a leasehold — each entry records exactly one structural change, in order, so any environment can arrive at the same schema. Prisma writes these files under `prisma/migrations/`, tracks which have been applied in a `_prisma_migrations` table, and refuses to silently rewrite history.
 
-The first migration (`20261125080000_init/migration.sql`) was produced **offline** with `prisma migrate diff --from-empty --to-schema prisma/schema.prisma --script`, because the credentials were not available at the time. It contains the same SQL `migrate dev` would have created. Once `apps/api/.env` exists, `npm run migrate` applies it and generates the client again.
+The first migration (`20261125080000_init/migration.sql`) was produced **offline** with `prisma migrate diff --from-empty --to-schema prisma/schema.prisma --script`, because the credentials were not available at the time. It contains the same SQL `migrate dev` would have created; `npm run migrate` later applied it to the dev branch. Deployed environments run `migrate deploy`, which applies this file without creating new ones.
 
-## Deliberately not modelled yet
+## Deliberately not modelled (scope boundary)
 
 - Remote / hybrid / onsite enum — free-text `location` covers it.
 - Pagination — a personal tracker has hundreds of rows, not millions.

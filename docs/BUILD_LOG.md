@@ -1,6 +1,6 @@
 # Build log
 
-Chronological record. Commands are the ones actually run; problems are recorded when hit.
+Chronological record. Commands are the ones actually run; problems are recorded when hit. The final entry is the current status — earlier "pending" lines describe the state at that point in the build, not today.
 
 ## 2026-11-25 — Plan approved (Phase 0)
 
@@ -213,3 +213,27 @@ Proposal approved with six amendments:
 3. `git diff --cached --check` flagged trailing whitespace in generated Prisma client files. Added `apps/api/src/generated/prisma/` to `.gitignore` instead of reformatting generated output; `npm run generate` recreates it locally, in CI and on Render.
 
 **Status:** Phase 8 configs are ready and locally verified. The real deploy is still a human step: create the Neon production branch, enter Render/Vercel values from [[HOW_TO]], seed once from Render Shell, set `CI_DB_PASSWORD`, `CI_JWT_SECRET` and `RENDER_HEALTH_URL`, then replace the README live-URL placeholder. Risk: `vercel.json` points at the intended `https://applied-api.onrender.com`; if Render appends a suffix, that one destination must be edited before deploying.
+
+## 2026-11-25 — Phase 9: final docs and resume
+
+**Built:** an accuracy pass over `README.md` and every file in `docs/`, checked against the actual routes, schemas, controller, dashboard, seed and deploy configs. Corrected `DATABASE.md` (migration applied; generated client ignored by git, not committed), `API.md` (Phase 9 header, production base URL, generic helmet wording), `ARCHITECTURE.md` (real middleware order, `TRUST_PROXY` in the diagram, React as a current client, config-not-live deploy language), `STACK.md` (no "planned" markers; verified design claims only), `HOW_TO.md` (real clone URL, seed step, data-screen wording, accurate add-a-field checklist) and `INTERVIEW_NOTES.md` (real pitch, five curated questions, deploy trade-offs). Added four resume bullets, a 30-second pitch and "What I'd improve next" to the README; added five strong Q&As to `INTERVIEW_NOTES.md`.
+
+**Corrections made:**
+
+1. Removed the screenshot placeholder and "Phase N planned" markers that contradicted the built code.
+2. Kept the live URL as a pending-deploy line: the user confirmed Vercel has not been deployed yet, so no URL was invented.
+3. Added a note at the top of this log that earlier "pending" statuses are historical, not current.
+
+**Commands and results:**
+
+| Command / check | Result |
+|---|---|
+| `npm run generate && npm run typecheck && npm run lint && npm test && npm run build` | all passed; Prisma client regenerated, 19/19 tests, 341.53 kB JS / 106.61 kB gzip |
+| `git diff --check` | clean |
+| Grep for stale markers across `README.md` and `docs/*.md` | only accurate deploy-pending lines and historical log entries remain |
+
+**Status:** Phase 9 complete. Code and docs are final; publishing to Render/Vercel, setting the three repository secrets and pasting the real Vercel URL into the README are the remaining human steps. The live app was not smoke-tested because no URL has been supplied.
+
+## 2026-11-26 — Interview notes made local-only
+
+`docs/INTERVIEW_NOTES.md` is personal interview prep, so it was removed from git tracking and added to `.gitignore`. The file itself stays on disk; only the public repository loses it. The README documentation table link and the `[[INTERVIEW_NOTES]]` wikilink were removed so GitHub has no dangling links. Earlier log entries that mention the file remain as a historical record.
