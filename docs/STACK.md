@@ -19,7 +19,7 @@ _Last updated: 2026-11-26 — Vercel Services pass. Everything listed is install
 | helmet + express-rate-limit | Security headers + brute-force throttling | Added globally / on auth routes at the trust boundary; non-negotiable | Custom middleware (less tested) |
 | Vitest 5 + Supertest | API integration tests | Tests real routes, middleware and Prisma together; one runner for the monorepo. Vitest 2 had critical advisories, so it was upgraded before writing tests | Jest (extra config with ESM); Playwright (overkill for API tests) |
 | ESLint 10 + Prettier | Lint and format | Flat config covers both apps and the shared package; no formatting debates | ESLint 9 (deprecated warning on install) |
-| GitHub Actions | CI | Runs install, migrate, typecheck, lint, test and build on every push/PR with a Postgres service and secrets | No CI |
+| GitHub Actions | CI | Runs install, migrate, typecheck, lint, test and build on every push/PR with an ephemeral Postgres service and throwaway test credentials | No CI |
 | React Testing Library + jest-dom + jsdom | Frontend tests | Tests what the user sees (roles, labels, messages) rather than component internals; jsdom gives a DOM in Node | Enzyme (shallow rendering hides real behaviour); snapshot-only tests (brittle) |
 | Vercel Services | Deploy target (configured) | One project with two services: Vite for React and Express for the API, sharing one domain; a rewrite makes `/api` same-origin | Two separate Vercel projects (independent rollouts but two domains and CORS); one host serving both jobs (simpler, less conventional split) |
 

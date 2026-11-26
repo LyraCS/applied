@@ -158,7 +158,7 @@ sequenceDiagram
 
 One Vitest config runs both Node/Supertest API tests and jsdom React tests. API tests use the real dev branch locally and an ephemeral Postgres service in CI; each file's `afterAll` deletes only its own users. The frontend tests mock just the auth context — the form test runs the real React Hook Form + Zod resolver, so the blank-to-null transform is verified end to end. Rate-limit tests use distinct `X-Forwarded-For` IPs because the limiter counter is in-memory and per IP.
 
-CI runs on every push and PR: `npm ci` → Prisma generate → `migrate deploy` → typecheck → lint → test → build. The DB password and JWT secret come from repository secrets, so no credential is stored in the repo.
+CI runs on every push and PR: `npm ci` → Prisma generate → `migrate deploy` → typecheck → lint → test → build. The DB password and JWT secret are throwaway literals scoped to the ephemeral CI container, so no real credential is stored and forks can run CI without setup.
 
 ## Deployment
 

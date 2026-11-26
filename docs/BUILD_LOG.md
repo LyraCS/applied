@@ -250,6 +250,12 @@ Proposal approved with six amendments:
 
 **Status:** config is complete and locally verified but not committed and not deployed. Remaining human steps: commit/push, import the repo into a Vercel project, set the six project env variables, run the production migration and seed once, then paste the printed URL into `README.md` and smoke-test. No live URL has been supplied.
 
+## 2026-11-26 — CI made self-contained
+
+**Changed:** the `postgres:16` service container failed at `Initialize containers` because `POSTGRES_PASSWORD` read the unset `CI_DB_PASSWORD` secret, so Postgres refused to initialise. Replaced both CI secrets with fixed throwaway literals scoped to the ephemeral container; the JWT secret is likewise test-only. CI now needs no repository setup and works on forks. Updated [[HOW_TO]], [[ARCHITECTURE]] and [[STACK]] to match.
+
+**Status:** fix pushed; the next CI run on `main` is the verification.
+
 ## 2026-11-26 — Interview notes made local-only
 
 `docs/INTERVIEW_NOTES.md` is personal interview prep, so it was removed from git tracking and added to `.gitignore`. The file itself stays on disk; only the public repository loses it. The README documentation table link and the `[[INTERVIEW_NOTES]]` wikilink were removed so GitHub has no dangling links. Earlier log entries that mention the file remain as a historical record.

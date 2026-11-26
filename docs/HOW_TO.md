@@ -60,7 +60,7 @@ Prisma CLI reads `DIRECT_URL` from `apps/api/prisma.config.ts`; the running API 
 ## CI on GitHub
 
 1. The repo is already on GitHub at `LyraCS/applied`; the badge reads from it.
-2. Add two repository secrets: `CI_DB_PASSWORD` and `CI_JWT_SECRET`. Generate URL-safe values with `openssl rand -hex 24` — the DB password is also the throwaway Postgres service password, so do not reuse a real one.
+2. No repository secrets are needed. The workflow starts an ephemeral Postgres container with a fixed throwaway password and a test-only JWT secret; neither protects anything real, and CI works on forks too.
 3. The README badge already points to `LyraCS/applied`; keep it as is.
 4. Every push and pull request runs install → Prisma generate → `migrate deploy` → typecheck → lint → test → build. A failed step blocks the run; the badge shows the result.
 
