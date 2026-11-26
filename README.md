@@ -17,7 +17,7 @@ Save a job with just a company and a role, then fill in the rest whenever you li
 
 **Live URL:** _pending the first Vercel deploy; this line will hold the public URL._
 
-> Build status: **Phase 9 of 9** — the full app, 19 tests, CI, demo seed, deploy configs and final docs are done. Only publishing to Vercel/Render remains; the live URL is not provided yet.
+> Build status: **Phase 9 of 9, Vercel deploy configured** — the full app, 19 tests, CI, demo seed and docs are done. Both apps are configured as one Vercel Services project; only publishing remains, so the live URL is not provided yet.
 
 ## Quick start (target: 5 steps)
 
@@ -34,11 +34,11 @@ Save a job with just a company and a role, then fill in the rest whenever you li
 - **Built** a full-stack job tracker with React 18, TypeScript, Express 4, Prisma 7 and Neon Postgres, delivering kanban/table views, dashboard stats and a seeded demo spanning all five application statuses.
 - **Secured** user data with httpOnly JWT cookies and shared Zod schemas, scoping every query by user ID and returning identical 404s for missing and cross-user rows.
 - **Tested** the stack with 19 Vitest, Supertest and React Testing Library tests, then wired GitHub Actions to run migrations, typecheck, lint, tests and build on every push and PR.
-- **Prepared** Vercel and Render deployment with a same-origin `/api` rewrite, `migrate deploy` on boot, `/api/health` checks and a scheduled warm-up workflow for Render's free-tier cold starts.
+- **Configured** Vercel Services to deploy the React and Express apps as one project with a shared `/api` rewrite, runtime Prisma client generation and `/api/health` checks.
 
 ## 30-second pitch
 
-I built Applied because job searches are easier to lose than to manage. It's a full-stack tracker where you save a company and role in seconds, then move applications through a kanban board or inspect them in a table. React and Vite handle the UI, Express and Prisma talk to Postgres on Neon, and one shared Zod schema keeps the form and API in agreement. Auth uses an httpOnly JWT cookie, every query is scoped to the signed-in user, and 19 tests plus GitHub Actions check the whole path. Render and Vercel configs are ready; the last step is publishing the live URL.
+I built Applied because job searches are easier to lose than to manage. It's a full-stack tracker where you save a company and role in seconds, then move applications through a kanban board or inspect them in a table. React and Vite handle the UI, Express and Prisma talk to Postgres on Neon, and one shared Zod schema keeps the form and API in agreement. Auth uses an httpOnly JWT cookie, every query is scoped to the signed-in user, and 19 tests plus GitHub Actions check the whole path. Both apps are configured to deploy together on Vercel Services; the last step is publishing the project.
 
 ## What I'd improve next
 

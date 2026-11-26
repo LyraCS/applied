@@ -2,7 +2,7 @@
 
 _Last updated: 2026-11-25 — Phase 9 accuracy pass. Health, auth, all five application routes and `GET /api/stats` are implemented and tested; the frontend consumes them through `/api`._
 
-Base URL in dev: `http://localhost:4000` (reached from the browser as `/api` via the Vite proxy). In production the browser calls `/api` on the Vercel domain and Vercel forwards it to Render.
+Base URL in dev: `http://localhost:4000` (reached from the browser as `/api` via the Vite proxy). In production the browser calls `/api` on the Vercel domain and Vercel routes it to the Express service in the same project.
 
 ## Conventions
 
@@ -68,7 +68,7 @@ The JWT cookie is the only source of identity. No route reads a user ID from a b
 { "total": 12, "byStatus": { "SAVED": 4, "APPLIED": 3, "INTERVIEW": 2, "OFFER": 1, "REJECTED": 2 }, "appliedThisWeek": 3 }
 ```
 
-`byStatus` always contains all five keys (zeros included), so the UI does not have to guess. `appliedThisWeek` counts rows with `appliedAt >= Monday 00:00 UTC` of the current week; UTC keeps the number identical on a laptop and on Render.
+`byStatus` always contains all five keys (zeros included), so the UI does not have to guess. `appliedThisWeek` counts rows with `appliedAt >= Monday 00:00 UTC` of the current week; UTC keeps the number identical on a laptop and in production.
 
 ## Auth details (implemented)
 

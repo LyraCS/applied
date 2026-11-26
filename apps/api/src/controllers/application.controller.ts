@@ -11,7 +11,7 @@ import { prisma } from '../lib/prisma'
 
 const notFound = { error: { message: 'Application not found', code: 'NOT_FOUND' } }
 
-// Monday 00:00 UTC. UTC makes "this week" the same on a laptop and on Render.
+// Monday 00:00 UTC. UTC makes "this week" the same on a laptop and in production.
 function startOfWeek(): Date {
   const now = new Date()
   const daysSinceMonday = (now.getUTCDay() + 6) % 7

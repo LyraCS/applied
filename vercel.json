@@ -1,11 +1,27 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
-  "buildCommand": "npm run build",
-  "outputDirectory": "apps/web/dist",
+  "services": {
+    "api": {
+      "root": ".",
+      "framework": "express",
+      "entrypoint": "apps/api/src/server.ts",
+      "buildCommand": "npm run generate --workspace @applied/api"
+    },
+    "web": {
+      "root": ".",
+      "framework": "vite",
+      "buildCommand": "npm run build --workspace @applied/web",
+      "outputDirectory": "apps/web/dist"
+    }
+  },
   "rewrites": [
     {
-      "source": "/api/:path*",
-      "destination": "https://applied-api.onrender.com/api/:path*"
+      "source": "/api/(.*)",
+      "destination": { "service": "api" }
+    },
+    {
+      "source": "/(.*)",
+      "destination": { "service": "web" }
     }
   ]
 }

@@ -1,6 +1,6 @@
 # Database
 
-_Last updated: 2026-11-25 — Phase 9 accuracy pass. The schema, generated client and initial migration are in place; the migration has been applied to the Neon dev branch, and Render applies the same migration with `migrate deploy` on boot._
+_Last updated: 2026-11-26 — Vercel Services pass. The schema, generated client and initial migration are in place; the migration has been applied to the Neon dev branch. Vercel Functions have no start command, so production needs a manual `prisma migrate deploy` before the first deploy (see [[HOW_TO]])._
 
 ## Local development: Neon dev branch
 

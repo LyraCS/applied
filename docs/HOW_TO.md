@@ -1,6 +1,6 @@
 # How to
 
-_Last updated: 2026-11-25 — Phase 9 accuracy pass. Every section below describes code that exists in the repo; deploy steps are pending the first Vercel release._
+_Last updated: 2026-11-26 — Vercel Services pass. Every section below describes code that exists in the repo; deploy steps target one Vercel project with two services and are pending the first release._
 
 ## Local setup from scratch
 
@@ -66,66 +66,56 @@ Prisma CLI reads `DIRECT_URL` from `apps/api/prisma.config.ts`; the running API 
 
 ## Deploy
 
-Three boxes: **Neon** stores data, **Render** runs the Express API, **Vercel** serves React. The browser only ever calls the Vercel domain; Vercel forwards `/api/*` to Render. Analogy: Vercel is the front desk, Render is the kitchen, Neon is the fridge — the visitor only speaks to the front desk, so the cookie looks like it belongs to one shop.
+Two boxes plus a database: **Vercel** runs one project with two services — `api` (Express) and `web` (React) — and **Neon** stores the data. The browser only ever calls the Vercel domain; Vercel routes `/api/*` to the API service and everything else to the web service. Analogy: Vercel is the front desk with two kitchens, Neon is the fridge — the visitor only speaks to the front desk, so the cookie looks like it belongs to one shop.
 
 ### 1. Neon — production database
 
 1. Create (or open) project `applied` at Neon.
 2. Create a branch named `production`. Do **not** reuse the `dev` branch your laptop uses.
-3. Copy the two connection strings from the **production** branch: the **pooled** one and the **direct** one. Keep them in the dashboard; paste them only into Render's env fields.
+3. Copy the two connection strings from the **production** branch: the **pooled** one and the **direct** one. Keep them in the dashboard; paste them only into Vercel's project env fields.
 4. Leave `sslmode=require` in the URL. The `pg` driver prints a warning about stricter SSL modes; that is fine.
 
-### 2. Render — API service
+### 2. Vercel — one project, two services
 
-Create **Web Service** with these exact values:
+`vercel.json` declares both services for this repo: `api` (Express) and `web` (Vite). Both use `root: "."` so install runs where the `@applied/shared` npm workspace resolves; the config sets each service's entrypoint, build command and output directory. Import `LyraCS/applied` at `vercel.com/new` and leave **Root Directory** blank — the file, not dashboard settings, decides how each service builds.
 
-| Field | Value |
-|---|---|
-| Name | `applied-api` |
-| Environment | Node |
-| Root Directory | leave blank (repo root, because this is an npm workspace) |
-| Build Command | `npm install --include=dev && npm run generate` |
-| Start Command | `npm run deploy:api` |
-| Health Check Path | `/api/health` |
-| Plan | Free to start; Starter if you want no cold starts |
+| Service | Framework | Entry / build | Public path |
+|---|---|---|---|
+| `api` | Express | `apps/api/src/server.ts`, then `npm run generate --workspace @applied/api` | `/api/*` |
+| `web` | Vite | `npm run build --workspace @applied/web` → `apps/web/dist` | everything else |
 
-`npm install --include=dev` is needed because Prisma CLI and `tsx` are devDependencies, and both are used when the service starts. `npm run deploy:api` expands to `prisma migrate deploy && npm run start` — **never `migrate dev`** on a deployed database. `migrate deploy` applies migrations without inventing new ones.
+Top-level rewrites send `/api/(.*)` to `api` and the catch-all `/(.*)` to `web`, most specific first. Vercel passes the original path to the service, so Express still sees `/api/health` and the browser still calls `/api` on its own domain. That keeps the httpOnly cookie `SameSite=Lax`; no CORS middleware is needed.
 
-Add these environment variables in Render's dashboard:
+Add these **project** environment variables (shared by both services, never stored in git):
 
 | Key | Value to enter |
 |---|---|
-| `NODE_ENV` | `production` (this turns on `Secure` cookies) |
-| `PORT` | `10000` |
+| `NODE_ENV` | `production` (makes the JWT cookie `Secure`) |
 | `DATABASE_URL` | Neon **pooled** production URL |
-| `DIRECT_URL` | Neon **direct** production URL (used by `migrate deploy`) |
+| `DIRECT_URL` | Neon **direct** production URL — required by `prisma.config.ts` at build time |
 | `JWT_SECRET` | `openssl rand -base64 48` output, generated locally and pasted only here |
-| `CORS_ORIGIN` | `https://<your-vercel-app>.vercel.app` (update after step 3) |
-| `TRUST_PROXY` | `2` because a request crosses Vercel **and** Render before reaching Express |
+| `CORS_ORIGIN` | the Vercel URL after deploy; documents the intended browser origin only |
+| `TRUST_PROXY` | `1` (the default) — Vercel's edge is the single proxy hop |
 
-`TRUST_PROXY` tells Express how many friendly middlemen to skip when finding the visitor's IP. Too few and every visitor looks like Vercel, so the 10-strike limiter throttles everyone together; too many and a caller can spoof `X-Forwarded-For`.
+`TRUST_PROXY` tells Express how many friendly middlemen to skip when finding the visitor's IP. Too few and everyone looks like the edge, so the 10-strike limiter throttles all visitors together; too many and a caller can spoof `X-Forwarded-For`.
 
-After the first deploy, open Render's **Shell** for `applied-api` and run `npm run seed` once. Running it in Shell means the production secrets stay on Render. It creates `demo@applied.example` with 10 applications and is safe to rerun.
+### 3. Neon — apply the migration and seed
 
-Check `https://applied-api.onrender.com/api/health` → `200 {"status":"ok"}`. If Render appends a suffix to your service name, use that URL everywhere below instead.
+Vercel Functions have no start command, so migrations are **not** applied automatically. Before the first production deploy, run these locally with the production connection strings in your shell (never commit them):
 
-### 3. Vercel — web app
+```sh
+cd apps/api
+DATABASE_URL="<pooled-url>" DIRECT_URL="<direct-url>" npx prisma migrate deploy
+DATABASE_URL="<pooled-url>" DIRECT_URL="<direct-url>" npm run seed
+```
 
-1. Import `LyraCS/applied`. Framework Preset: **Vite** (auto-detected). Root Directory: leave blank.
-2. Build Command: `npm run build`. Output Directory: `apps/web/dist`. Install Command: `npm install` (the default).
-3. If your Render URL is not `https://applied-api.onrender.com`, edit the one `destination` line in `vercel.json` and push that change before deploying.
-4. Deploy; Vercel prints the project URL. No Vercel environment variables are needed — the rewrite target is not a secret.
-5. Replace the placeholder URL in `README.md` with the Vercel URL, and set Render's `CORS_ORIGIN` to that same URL, then redeploy Render if you changed it.
+`migrate deploy` applies the checked-in migration without inventing a new one — **never `migrate dev`** against production. The seed creates `demo@applied.example` with 10 applications and is safe to rerun. Then check `https://<your-vercel-app>.vercel.app/api/health` → `200 {"status":"ok"}`.
 
-`vercel.json` rewrites `/api/:path*` to the Render URL. To the browser the request is still `https://<your-vercel-app>.vercel.app/api/...`, so `SameSite=Lax` cookies work and no CORS middleware is needed. `CORS_ORIGIN` is stored anyway so a future direct-API client has a documented allowed origin.
+### 4. Finish
 
-### 4. Warm-up (Render free-instance cold start)
-
-Render's free instance sleeps after roughly 15 minutes idle; the first visitor then waits while it boots. `.github/workflows/warmup.yml` pings `/api/health` every 10 minutes via GitHub Actions.
-
-1. Add repository secret `RENDER_HEALTH_URL` = `https://applied-api.onrender.com/api/health`.
-2. Open **Actions → Warm up API → Run workflow** to confirm it turns green.
-3. Trade-off: ~144 tiny Action runs/day, which uses free Actions minutes. A paid Render Starter instance (about $7/month as of Nov 2026) stays awake and is simpler — in that case delete `warmup.yml` and keep the health check.
+1. Deploy; Vercel prints the project URL.
+2. Replace the live-URL placeholder in `README.md` with that URL and set `CORS_ORIGIN` to it.
+3. No warm-up workflow is needed: Vercel Functions use Fluid compute, so there is no sleeping instance to wake.
 
 ### 5. Live smoke test
 

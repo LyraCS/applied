@@ -9,7 +9,7 @@ import { statsRoutes } from './routes/stats.routes'
 
 export const app = express()
 
-// Render terminates TLS before traffic reaches us; without this, Express
+// Vercel's edge terminates TLS before traffic reaches us; without this, Express
 // would see the proxy's IP and rate limiting would throttle everyone together.
 app.set('trust proxy', env.TRUST_PROXY)
 

@@ -234,6 +234,22 @@ Proposal approved with six amendments:
 
 **Status:** Phase 9 complete. Code and docs are final; publishing to Render/Vercel, setting the three repository secrets and pasting the real Vercel URL into the README are the remaining human steps. The live app was not smoke-tested because no URL has been supplied.
 
+## 2026-11-26 — Vercel Services deploy configuration
+
+**Built:** replaced the Render-forwarding `vercel.json` with a two-service config. `api` (Express, entrypoint `apps/api/src/server.ts`, `prisma generate` on build) is public at `/api/*`; `web` (Vite, `apps/web/dist`) is public at the catch-all. Both services use `root: "."` so the shared npm workspace resolves at install time. No bindings were added: the browser calls `/api` over the public rewrite and the API never calls the web service. Vercel passes the original path into a service, so existing `/api/*` Express mounts and the web fetch wrapper already agreed; only Render-era code comments needed correction.
+
+**Removed:** `.github/workflows/warmup.yml` and the `RENDER_HEALTH_URL` secret requirement — Vercel Functions use Fluid compute and have no sleeping instance. Updated `README.md` and `docs/API.md`, `DATABASE.md`, `STACK.md`, `HOW_TO.md` and `ARCHITECTURE.md` from the Render split to one Vercel project, including the manual `prisma migrate deploy` + seed step that Functions cannot run on boot.
+
+**Commands and results:**
+
+| Command / check | Result |
+|---|---|
+| JSON parse of `vercel.json` | valid; 2 services, `/api/(.*)` → `api`, `/(.*)` → `web` |
+| `npm run typecheck && npm run lint && npm test && npm run build` | all passed; 19/19 tests, 341.53 kB JS / 106.61 kB gzip |
+| `git diff --check` | clean |
+
+**Status:** config is complete and locally verified but not committed and not deployed. Remaining human steps: commit/push, import the repo into a Vercel project, set the six project env variables, run the production migration and seed once, then paste the printed URL into `README.md` and smoke-test. No live URL has been supplied.
+
 ## 2026-11-26 — Interview notes made local-only
 
 `docs/INTERVIEW_NOTES.md` is personal interview prep, so it was removed from git tracking and added to `.gitignore`. The file itself stays on disk; only the public repository loses it. The README documentation table link and the `[[INTERVIEW_NOTES]]` wikilink were removed so GitHub has no dangling links. Earlier log entries that mention the file remain as a historical record.

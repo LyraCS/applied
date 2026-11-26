@@ -11,7 +11,7 @@ const envSchema = z.object({
   JWT_SECRET: z.string().min(32, 'JWT_SECRET must be at least 32 characters'),
   CORS_ORIGIN: z.string().url().default('http://localhost:5173'),
   // How many proxy hops Express trusts when finding the visitor's IP for the
-  // auth rate limiter. Local/Render-direct = 1; Vercel rewrite + Render = 2.
+  // auth rate limiter. Local and Vercel Services = 1; add one per extra hop.
   TRUST_PROXY: z.coerce.number().int().nonnegative().default(1),
 })
 
