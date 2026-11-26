@@ -15,9 +15,9 @@ Save a job with just a company and a role, then fill in the rest whenever you li
 ![Tailwind CSS](https://img.shields.io/badge/Tailwind-3.4-06B6D4?logo=tailwindcss&logoColor=white)
 ![Vitest](https://img.shields.io/badge/Tests-Vitest-6E9F18?logo=vitest&logoColor=white)
 
-**Live URL:** _pending the first Vercel deploy; this line will hold the public URL._
+**Live URL:** https://applied-one-beta.vercel.app
 
-> Build status: **Phase 9 of 9, Vercel deploy configured** — the full app, 19 tests, CI, demo seed and docs are done. Both apps are configured as one Vercel Services project; only publishing remains, so the live URL is not provided yet.
+> Build status: **Phase 9 of 9, deployed on Vercel** — the full app, 19 tests, CI, demo seed and docs are done. React and Express run as two services in one Vercel project, with `/api` routed same-origin.
 
 ## Quick start (target: 5 steps)
 
